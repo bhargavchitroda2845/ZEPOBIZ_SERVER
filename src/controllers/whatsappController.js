@@ -26,8 +26,14 @@ const handleWebhook = async (req, res) => {
       return res.sendStatus(404);
     }
     const value = body.entry?.[0]?.changes?.[0]?.value;
+    console.log("🔍 VALUE OBJECT:", JSON.stringify(value, null, 2));
+
     if (!value || !value.messages) {
-      console.log("ℹ️ No messages in webhook (likely a status update)");
+      if (value?.statuses) {
+        console.log("ℹ️ Received a Status Update (Sent/Delivered/Read), not a new message.");
+      } else {
+        console.log("ℹ️ Unknown webhook type (No messages and no statuses).");
+      }
       return res.sendStatus(200);
     }
 
