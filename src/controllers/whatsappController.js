@@ -19,16 +19,24 @@ setInterval(() => processedMessages.clear(), 60000); // Clear every minute
 const handleWebhook = async (req, res) => {
   try {
     const body = req.body;
-    if (body.object !== 'whatsapp_business_account') return res.sendStatus(404);
+    console.log("🟢 WEBHOOK RECEIVED:", JSON.stringify(body, null, 2));
+
+    if (body.object !== 'whatsapp_business_account') {
+      console.log("❌ NOT WHATSAPP OBJECT");
+      return res.sendStatus(404);
+    }
     const value = body.entry?.[0]?.changes?.[0]?.value;
-    if (!value || !value.messages) return res.sendStatus(200);
+    if (!value || !value.messages) {
+      console.log("ℹ️ No messages in webhook (likely a status update)");
+      return res.sendStatus(200);
+    }
 
     const message = value.messages[0];
     const messageId = message.id;
 
     // 🛑 De-duplication check
     if (processedMessages.has(messageId)) {
-      console.log(`⚠️ Skipping duplicate message: ${messageId}`);
+      console.log(`⚠️ Skipping duplicate: ${messageId}`);
       return res.status(200).send("OK");
     }
     processedMessages.add(messageId);
