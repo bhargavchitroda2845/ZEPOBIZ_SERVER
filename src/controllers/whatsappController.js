@@ -42,9 +42,18 @@ const handleWebhook = async (req, res) => {
     console.log(`----------------------------\n`);
 
     const account = await WhatsAppAccount.findOne({ phoneNumberId: value.metadata.phone_number_id });
-
     if (!account) return res.sendStatus(200);
     const tenantId = account.tenantId?._id || account.tenantId;
+
+    // 💾 SAVE INCOMING MESSAGE TO DB
+    await ChatMessage.create({
+      tenantId,
+      whatsappAccountId: account._id,
+      whatsappId: messageId,
+      from: fromPhone,
+      text: text || (message.type === 'image' ? "[Image]" : "[Media]"),
+      type: 'incoming'
+    });
 
     let customer = await BotCustomer.findOne({ tenantId, phone: fromPhone });
     if (!customer) {
